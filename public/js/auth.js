@@ -179,15 +179,20 @@ initLogout();
 // Protección de rutas y redirecciones basadas en el estado real de sesión (Firebase Auth)
 onAuthStateChanged(auth, (user) => {
   if (user) {
+    document.documentElement.dataset.authState = "authenticated";
     if (isLoginPage()) {
       redirectTo("index.html");
     }
     return;
   }
 
-  if (!user && isProtectedPage() && !isLoginPage()) {
+  if (isProtectedPage() && !isLoginPage()) {
+    document.documentElement.dataset.authState = "redirecting";
     redirectTo("login.html");
+    return;
   }
+
+  document.documentElement.dataset.authState = "anonymous";
 });
 
 export { auth, signOut, onAuthStateChanged };

@@ -37,7 +37,7 @@ const state = {
 const elements = {
   status: document.getElementById("app-status"),
   projectNavigation: document.getElementById("project-navigation"),
-  projectsOverview: document.getElementById("projects-overview"),
+  projectHome: document.getElementById("project-home"),
   notesView: document.getElementById("notes-view"),
   calendarView: document.getElementById("calendar-view"),
   title: document.getElementById("page-title"),
@@ -113,80 +113,52 @@ function filterBySearch(items, fields) {
   return items.filter((item) => fields(item).some((value) => String(value || "").toLocaleLowerCase("es").includes(term)));
 }
 
-function renderProjectOverview() {
-  elements.projectsOverview.replaceChildren();
-  const projects = filterBySearch(state.projects, (project) => {
-    const projectNotesForSearch = projectNotes(project.id);
+function renderProjectHome() {
+  elements.projectHome.replaceChildren();
+  const matchingProjects = filterBySearch(state.projects, (project) => {
+    const notes = projectNotes(project.id);
     return [
       project.name,
       project.description,
-      ...projectNotesForSearch.flatMap((note) => [note.title, note.content, note.codeHtml, note.codeCss, note.codeJs])
+      ...notes.flatMap((note) => [note.title, note.content, note.codeHtml, note.codeCss, note.codeJs])
     ];
   });
-  if (!projects.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    const heading = document.createElement("h2");
-    heading.textContent = state.query ? "No hay proyectos que coincidan" : "Empieza creando un proyecto";
-    const message = document.createElement("p");
-    message.textContent = state.query ? "Prueba con otros términos." : "Agrupa tus notas técnicas por proyecto para encontrarlas fácilmente.";
-    empty.append(heading, message);
-    elements.projectsOverview.append(empty);
-    return;
+  const empty = document.createElement("div");
+  empty.className = "empty-state";
+  const heading = document.createElement("h2");
+  const message = document.createElement("p");
+
+  if (state.query && !matchingProjects.length) {
+    heading.textContent = "No hay proyectos que coincidan";
+    message.textContent = "Prueba con otros términos de búsqueda.";
+  } else if (!state.projects.length) {
+    heading.textContent = "Empieza creando un proyecto";
+    message.textContent = "Tus proyectos aparecerán como subsecciones en el menú lateral.";
+  } else {
+    heading.textContent = "Selecciona un proyecto";
+    message.textContent = "Tus proyectos aparecen como subsecciones en el menú lateral. Al abrir uno, verás solo sus notas.";
   }
 
-  const heading = document.createElement("div");
-  heading.className = "section-subheading";
-  const title = document.createElement("h2");
-  title.textContent = "Tus proyectos";
-  const count = document.createElement("span");
-  count.textContent = `${projects.length} ${projects.length === 1 ? "proyecto" : "proyectos"}`;
-  heading.append(title, count);
-  elements.projectsOverview.append(heading);
-
-  projects.forEach((project) => {
-    const card = document.createElement("article");
-    card.className = "overview-card";
-    card.tabIndex = 0;
-    card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `Abrir proyecto ${project.name}`);
-    const open = () => selectProject(project.id);
-    card.addEventListener("click", open);
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        open();
-      }
-    });
-    const top = document.createElement("div");
-    top.className = "overview-card-top";
-    const name = document.createElement("h2");
-    name.textContent = project.name;
-    const icon = document.createElement("span");
-    icon.className = "project-card-icon";
-    icon.textContent = "▣";
-    icon.setAttribute("aria-hidden", "true");
-    top.append(name, icon);
-    const description = document.createElement("p");
-    description.textContent = project.description || "Sin descripción.";
-    const meta = document.createElement("div");
-    meta.className = "overview-meta";
-    const noteCount = projectNotes(project.id).length;
-    const noteText = document.createElement("span");
-    noteText.textContent = `${noteCount} ${noteCount === 1 ? "nota" : "notas"}`;
-    const openText = document.createElement("span");
-    openText.textContent = "Abrir →";
-    meta.append(noteText, openText);
-    card.append(top, description, meta);
-    elements.projectsOverview.append(card);
-  });
+  empty.append(heading, message);
+  elements.projectHome.append(empty);
 }
 
 function renderProjectNav() {
-  renderProjectNavigation(elements.projectNavigation, state.projects, state.section === "projects" ? state.projectId : null, {
+  const visibleProjects = state.section === "projects" && state.query
+    ? filterBySearch(state.projects, (project) => {
+      const notes = projectNotes(project.id);
+      return [
+        project.name,
+        project.description,
+        ...notes.flatMap((note) => [note.title, note.content, note.codeHtml, note.codeCss, note.codeJs])
+      ];
+    })
+    : state.projects;
+  renderProjectNavigation(elements.projectNavigation, visibleProjects, state.section === "projects" ? state.projectId : null, {
     onSelect: selectProject,
     onEdit: openProjectDialog,
-    onDelete: removeProject
+    onDelete: removeProject,
+    emptyMessage: state.query ? "Sin coincidencias." : "Aún no hay proyectos."
   });
 }
 
@@ -195,7 +167,7 @@ function renderActiveSection() {
   const isProjectOverview = state.section === "projects" && !state.projectId;
   const isNotes = state.section === "notes" || (state.section === "projects" && Boolean(state.projectId));
   const isCalendar = state.section === "calendar";
-  elements.projectsOverview.hidden = !isProjectOverview;
+  elements.projectHome.hidden = !isProjectOverview;
   elements.notesView.hidden = !isNotes;
   elements.calendarView.hidden = !isCalendar;
   elements.sortControl.hidden = !isNotes;
@@ -206,16 +178,17 @@ function renderActiveSection() {
     elements.eyebrow.textContent = "ESPACIO DE TRABAJO";
     elements.title.textContent = "Proyectos";
     elements.description.textContent = "Organiza tus proyectos y sus apuntes técnicos.";
-    renderProjectOverview();
+    renderProjectHome();
     return;
   }
 
   if (isNotes) {
     const project = state.projectId ? projectById(state.projectId) : null;
-    elements.eyebrow.textContent = project ? "PROYECTO" : "BIBLIOTECA PERSONAL";
-    elements.title.textContent = project ? project.name : "Notas";
-    elements.description.textContent = project?.description || (project ? "Apuntes y bloques de código de este proyecto." : "Apuntes generales independientes de tus proyectos.");
-    const scopedNotes = filterBySearch(projectNotes(project?.id || null), (note) => [note.title, note.content, note.codeHtml, note.codeCss, note.codeJs]);
+    const projectScopeActive = Boolean(state.projectId);
+    elements.eyebrow.textContent = projectScopeActive ? "PROYECTO" : "BIBLIOTECA PERSONAL";
+    elements.title.textContent = project?.name || (projectScopeActive ? "Proyecto" : "Notas");
+    elements.description.textContent = project?.description || (projectScopeActive ? "Apuntes y bloques de código de este proyecto." : "Apuntes generales independientes de tus proyectos.");
+    const scopedNotes = filterBySearch(projectNotes(state.projectId || null), (note) => [note.title, note.content, note.codeHtml, note.codeCss, note.codeJs]);
     renderNotes(elements.notesView, sortNotes(scopedNotes, state.sortBy), state.projects, {
       onEdit: openNoteDialog,
       onDelete: removeNote
