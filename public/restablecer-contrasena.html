@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Solicita un enlace seguro para restablecer tu contraseña de CodePad.">
+  <meta name="author" content="gaboo-eng">
+  <title>Restablecer contraseña | CodePad</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/login.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("codepad-theme");
+        if (saved === "dark" || saved === "light") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch {
+        // El tema predeterminado se conserva si localStorage no está disponible.
+      }
+    })();
+  </script>
+</head>
+<body>
+  <main class="login-page">
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema de color" aria-pressed="false">
+      <span aria-hidden="true">◐</span>
+      <span id="theme-toggle-label">Tema</span>
+    </button>
+
+    <section class="login-card" aria-labelledby="reset-title">
+      <header class="login-header">
+        <img src="./assets/logo.svg" alt="Logotipo de CodePad" class="login-logo" width="72" height="72">
+        <h1 id="reset-title" class="login-title">Restablecer contraseña</h1>
+        <p class="login-subtitle">Te enviaremos un enlace para crear una contraseña nueva.</p>
+      </header>
+
+      <form id="password-reset-form" class="login-form">
+        <div class="form-group">
+          <label for="reset-email">Correo electrónico</label>
+          <input type="email" id="reset-email" name="email" autocomplete="email" required placeholder="tu@correo.com">
+        </div>
+
+        <p id="reset-message" class="form-message" role="status" aria-live="polite"></p>
+
+        <button type="submit" id="reset-submit" class="btn-primary">Enviar enlace de recuperación</button>
+      </form>
+
+      <p class="login-recovery-link"><a href="./login.html">Volver a iniciar sesión</a></p>
+      <p class="login-footer">El enlace de recuperación se enviará a tu correo.</p>
+    </section>
+  </main>
+
+  <script type="module" src="./js/auth.js"></script>
+  <script type="module" src="./js/reset-password.js"></script>
+</body>
+</html>
