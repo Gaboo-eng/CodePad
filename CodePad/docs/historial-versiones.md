@@ -4,6 +4,24 @@ Registro detallado de versiones, fechas, cambios realizados y motivos.
 
 ---
 
+## v1.1.0 — 2026-11-25
+
+**Tipo de versión:** Funcionalidad menor  
+**Estado:** Dashboard integrado con Firebase
+
+### Descripción de cambios
+- Añadido `public/index.html` como dashboard responsive con navegación, búsqueda contextual, tema, notificaciones y acciones de sesión.
+- Añadidos estilos adaptables para escritorio y móvil en `public/css/dashboard.css`.
+- Añadido `public/js/db.js` con operaciones CRUD en Firestore aisladas bajo `/users/{uid}/`.
+- Implementados módulos para navegación de proyectos, renderizado seguro de notas y vista previa aislada, calendario mensual y recordatorios.
+- Agregadas operaciones para crear/editar/eliminar proyectos, notas y recordatorios.
+- Añadida documentación específica en `docs/actualizaciones/2026-11-25-dashboard.md`.
+
+### Motivo
+Completar el flujo de acceso que redirigía a un `index.html` inexistente y proporcionar el primer dashboard funcional conectado a Authentication y Firestore, respetando el aislamiento de datos por usuario.
+
+---
+
 ## v1.0.0 — 2026-11-24
 
 **Tipo de versión:** Inicial (base del proyecto)  

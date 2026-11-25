@@ -4,6 +4,14 @@ Registro resumido de versiones de **CodePad**.
 
 El formato sigue una convención basada en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado semántico.
 
+## [1.1.0] - 2026-11-25
+
+### Añadido
+- Dashboard responsive con secciones de Proyectos, Notas y Calendario, búsqueda contextual y preferencia de tema.
+- CRUD de proyectos, notas técnicas y recordatorios con Cloud Firestore aislado por UID.
+- Previsualización opcional de HTML/CSS/JavaScript en iframe con sandbox.
+- Campana para próximos recordatorios y notificaciones del navegador mientras la aplicación está abierta.
+
 ## [1.0.0] - 2026-11-24
 
 ### Añadido

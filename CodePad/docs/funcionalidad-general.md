@@ -3,8 +3,8 @@
 **Producto:** CodePad  
 **Tipo:** Bloc de notas técnico y portal de apuntes de programación  
 **Desarrollado por:** gaboo-eng  
-**Versión documentada:** v1.0.0 (base inicial)  
-**Fecha:** 2026-11-24
+**Versión documentada:** v1.1.0  
+**Fecha:** 2026-11-25
 
 ## 1. Descripción general
 CodePad es una aplicación web orientada a desarrolladores para gestionar proyectos, notas técnicas y recordatorios en un entorno unificado. Está construida con tecnologías web Vanilla (HTML5 semántico, CSS3 moderno y JavaScript ES6+ modular) e integra Firebase (plan Spark) para autenticación, persistencia de datos, hosting y notificaciones.
@@ -15,7 +15,7 @@ CodePad es una aplicación web orientada a desarrolladores para gestionar proyec
   - **Firebase Authentication:** inicio/cierre de sesión con correo y contraseña.
   - **Cloud Firestore:** almacenamiento de proyectos, notas y recordatorios aislados por usuario.
   - **Firebase Hosting:** despliegue web bajo HTTPS y cabeceras de seguridad.
-  - **Firebase Cloud Messaging (FCM) / Web Notifications API:** base para recordatorios y alertas en web, escritorio y móvil (según permisos y compatibilidad del navegador).
+  - **Web Notifications API:** avisos del navegador mientras el dashboard permanece abierto y el usuario concede permiso. Las notificaciones FCM en segundo plano quedan pendientes de configuración adicional.
 
 ## 3. Estructura principal del proyecto
 ```text
@@ -71,13 +71,13 @@ codepad/
    - Creación, edición y eliminación de proyectos ilimitados.
    - Los proyectos se despliegan como **subsecciones anidadas** dinámicamente bajo *Proyectos* en la navegación.
    - Cada proyecto tiene un espacio de trabajo con notas asociadas exclusivamente a él (crear, editar, eliminar y ordenar por fecha de creación/actualización o prioridad).
-   - **Soporte de código (HTML, CSS, JS):** cada nota puede incluir texto/apuntes y bloques de código. Por defecto se muestra texto y código formateado; la **vista previa visual solo se renderiza al pulsar "Ver Interfaz / Previsualizar"** dentro de un `<iframe sandbox="allow-scripts">` para aislar la ejecución y mitigar XSS.
+   - **Soporte de código (HTML, CSS, JS):** cada nota puede incluir texto/apuntes y bloques de código. Por defecto se muestra texto y código formateado; la **vista previa visual solo se renderiza al pulsar "Ver Interfaz / Previsualizar"** dentro de un `<iframe sandbox="allow-scripts">` con política de contenido restringida.
 2. **Notas**
    - Apuntes generales independientes (no vinculados a proyectos).
    - Crear, editar, eliminar y ordenar por fecha.
 3. **Calendario**
    - Vista mensual interactiva para seleccionar fechas y registrar notas/recordatorios con hora.
-   - Activación de recordatorios hacia la campana web y notificaciones de escritorio/móvil mediante Service Worker + Web Notifications API / FCM (según permisos).
+   - Los recordatorios aparecen en la campana y en la agenda. Los avisos del navegador se comprueban mientras CodePad permanece abierto, con permiso del usuario. Push en segundo plano con FCM aún requiere Service Worker, VAPID y un emisor confiable.
 
 ### 6.3 Sistema de clasificación por color (Notas de proyectos y generales)
 Selector manual con 4 estados visuales aplicados como borde/badge:
@@ -91,10 +91,18 @@ Contenido único: `© 2026 CodePad. Todos los derechos reservados. Desarrollado 
 
 ## 7. Datos y seguridad (Firestore)
 - **Aislamiento por usuario:** todas las colecciones bajo `/users/{userId}/...` (p. ej. `projects`, `notes`, `reminders`).
+- **Datos actuales:** `/users/{uid}/projects`, `/users/{uid}/notes` y `/users/{uid}/reminders`. Las notas guardan opcionalmente `projectId`; al eliminar un proyecto, sus notas se conservan como notas generales.
+- **Sincronización:** el dashboard escucha cambios de Firestore en tiempo real para las tres colecciones.
 - **Reglas de seguridad:** acceso de lectura/escritura permitido solo al usuario autenticado propietario (`request.auth.uid == userId`).
 - **Hosting seguro:** servicio bajo HTTPS con cabeceras de seguridad configuradas en `firebase.json` (incluye `X-Content-Type-Options` y `X-Frame-Options`).
 
-## 8. Documentación y versionado del proyecto
+## 8. Estado y puesta en marcha
+- `public/index.html` contiene el dashboard protegido por Firebase Authentication.
+- Para usar datos reales, completa el objeto `firebaseConfig` de `public/js/firebase-config.js`, habilita Email/Password en Firebase Authentication, crea Cloud Firestore y publica `firestore.rules`.
+- Las cuentas se crean en la consola Firebase; la interfaz actual incluye inicio y cierre de sesión, no registro.
+- Si Firestore rechaza una operación, comprueba que la sesión esté activa, que las reglas estén publicadas y que se utilice la ruta `/users/{uid}/...`.
+
+## 9. Documentación y versionado del proyecto
 - **`docs/funcionalidad-general.md`:** guía funcional completa y actualizable.
 - **`docs/historial-versiones.md`:** registro detallado por versión (fecha, cambios y motivo).
 - **`docs/actualizaciones/`:** documentos específicos por cada función agregada o actualizada.
