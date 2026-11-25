@@ -191,6 +191,12 @@ a:hover {
   color: var(--priority-done);
 }
 
+.login-recovery-link {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
 .login-footer {
   margin-top: 20px;
   text-align: center;
