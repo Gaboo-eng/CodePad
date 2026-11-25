@@ -30,7 +30,7 @@ jobs:
       - name: Subir sitio
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./CodePad/public
+          path: ./public
 
       - name: Implementar en Pages
         id: deployment
