@@ -1,0 +1,39 @@
+# Dependencias y artefactos
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+*-debug.log
+
+# Credenciales y secretos (nunca subir claves privadas o service accounts)
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Salida temporal
+dist/
+build/
+tmp/
+temp/
