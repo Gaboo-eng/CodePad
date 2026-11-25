@@ -14,6 +14,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+[hidden] { display: none !important; }
+
+html[data-auth-state="pending"] body,
+html[data-auth-state="redirecting"] body { visibility: hidden; }
+
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
@@ -114,15 +119,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .workspace { width: 100%; max-width: 1600px; flex: 1; display: flex; margin: 0 auto; }
 .sidebar {
+  position: sticky;
+  top: 72px;
   width: 260px;
   flex: 0 0 260px;
+  height: calc(100vh - 72px);
   display: flex;
   flex-direction: column;
   padding: 24px 16px 18px;
+  overflow: hidden;
   border-right: 1px solid var(--color-border);
   background: var(--color-surface);
 }
-.main-nav { display: flex; flex-direction: column; gap: 5px; }
+.main-nav { min-height: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; overscroll-behavior: contain; }
 .nav-link {
   width: 100%;
   min-height: 42px;
@@ -213,24 +222,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .text-button { padding: 4px; color: var(--color-accent); background: transparent; border: 0; cursor: pointer; font-size: .77rem; }
 .text-button:hover { text-decoration: underline; }
 
-.projects-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-bottom: 32px; }
-.overview-card, .note-card, .calendar-panel, .calendar-agenda, .empty-state {
+.project-home { margin-bottom: 32px; }
+.note-card, .calendar-panel, .calendar-agenda, .empty-state {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
-.overview-card { position: relative; padding: 19px; cursor: pointer; transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition); }
-.overview-card:hover { transform: translateY(-2px); border-color: var(--color-accent); box-shadow: var(--shadow-md); }
-.overview-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.overview-card h2 { margin: 0; overflow-wrap: anywhere; font-size: 1rem; }
-.overview-card p { min-height: 2.7em; margin: 10px 0 15px; color: var(--color-text-muted); font-size: .85rem; }
-.overview-meta { display: flex; align-items: center; justify-content: space-between; color: var(--color-text-muted); font-size: .77rem; }
-.project-card-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; color: var(--color-accent); background: rgba(37, 99, 235, .1); }
-.section-subheading { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin: 10px 0 -3px; }
-.section-subheading h2 { margin: 0; font-size: 1rem; }
-.section-subheading span { color: var(--color-text-muted); font-size: .82rem; }
-
 .notes-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); align-items: start; gap: 14px; }
 .note-card { min-width: 0; border-left: 4px solid var(--priority-default); overflow: hidden; }
 .note-card.priority-high { border-left-color: var(--priority-high); }
@@ -347,7 +345,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .topbar-actions { gap: 3px; }
   .topbar-actions > .icon-button { min-width: 34px; padding: 0 6px; }
   .logout-button span:last-child { display: none; }
-  .sidebar { position: fixed; z-index: 42; top: 62px; bottom: 0; left: 0; width: min(290px, 84vw); transform: translateX(-105%); transition: transform 180ms ease; box-shadow: var(--shadow-md); }
+  .sidebar { position: fixed; z-index: 42; top: 62px; bottom: 0; left: 0; width: min(290px, 84vw); height: auto; transform: translateX(-105%); transition: transform 180ms ease; box-shadow: var(--shadow-md); }
   .sidebar.is-open { transform: translateX(0); }
   .sidebar-backdrop:not([hidden]) { display: block; position: fixed; z-index: 40; inset: 62px 0 0; width: 100%; border: 0; background: rgba(0, 0, 0, .35); }
   .workspace { display: block; }
@@ -356,7 +354,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .page-heading-actions { flex-wrap: wrap; }
   .sort-control { flex: 1; min-width: 160px; }
   .sort-control select { width: 100%; }
-  .projects-overview, .notes-view { grid-template-columns: 1fr; }
+  .notes-view { grid-template-columns: 1fr; }
   .calendar-view { grid-template-columns: 1fr; }
   .calendar-panel, .calendar-agenda { padding: 14px; }
   .calendar-day { min-height: 50px; }
