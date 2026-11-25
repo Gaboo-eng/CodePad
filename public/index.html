@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CodePad: organiza proyectos, apuntes técnicos y recordatorios de programación.">
+  <meta name="author" content="gaboo-eng">
+  <meta name="theme-color" content="#FAFAFA">
+  <title>CodePad | Panel</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/dashboard.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="icon-button mobile-menu-button" id="mobile-menu-button" type="button" aria-label="Abrir navegación" aria-expanded="false" aria-controls="sidebar">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <a class="brand" href="./index.html" aria-label="CodePad, inicio">
+        <img src="./assets/logo.svg" alt="" width="36" height="36">
+        <span>CodePad</span>
+      </a>
+      <label class="search-box">
+        <span class="visually-hidden">Buscar en la sección actual</span>
+        <span aria-hidden="true">⌕</span>
+        <input id="context-search" type="search" placeholder="Buscar en esta sección..." autocomplete="off">
+        <kbd>/</kbd>
+      </label>
+      <div class="topbar-actions">
+        <button class="icon-button theme-button" id="theme-toggle" type="button" aria-label="Cambiar tema de color" aria-pressed="false" title="Cambiar tema">
+          <span aria-hidden="true">◐</span>
+          <span id="theme-toggle-label" class="theme-label">Tema</span>
+        </button>
+        <div class="notification-wrap">
+          <button class="icon-button notification-button" id="notification-toggle" type="button" aria-label="Notificaciones" aria-expanded="false" aria-controls="notification-menu">
+            <span aria-hidden="true">♧</span>
+            <span id="notification-count" class="notification-count" hidden>0</span>
+          </button>
+          <section class="notification-menu" id="notification-menu" aria-label="Recordatorios próximos" hidden>
+            <div class="notification-menu-heading">
+              <h2>Recordatorios</h2>
+              <button type="button" id="enable-notifications" class="text-button">Activar avisos</button>
+            </div>
+            <div id="notification-list" class="notification-list"></div>
+          </section>
+        </div>
+        <button class="icon-button logout-button" id="logout-button" type="button" title="Cerrar sesión">
+          <span aria-hidden="true">↪</span>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+        <nav class="main-nav">
+          <button class="nav-link is-active" type="button" data-section="projects" aria-current="page">
+            <span class="nav-icon" aria-hidden="true">▣</span><span>Proyectos</span>
+          </button>
+          <div class="project-nav-heading">
+            <span class="eyebrow">Tus proyectos</span>
+            <button type="button" class="small-icon-button" id="add-project-button" aria-label="Crear proyecto" title="Crear proyecto">+</button>
+          </div>
+          <div id="project-navigation" class="project-navigation"></div>
+          <button class="nav-link" type="button" data-section="notes">
+            <span class="nav-icon" aria-hidden="true">▤</span><span>Notas</span>
+          </button>
+          <button class="nav-link" type="button" data-section="calendar">
+            <span class="nav-icon" aria-hidden="true">▦</span><span>Calendario</span>
+          </button>
+        </nav>
+        <div class="sidebar-account">
+          <span class="account-avatar" aria-hidden="true" id="account-avatar">C</span>
+          <span class="account-info"><strong id="account-name">Conectando...</strong><small>Cuenta personal</small></span>
+        </div>
+      </aside>
+      <button type="button" id="sidebar-backdrop" class="sidebar-backdrop" aria-label="Cerrar navegación" hidden></button>
+
+      <main class="main-content" id="main-content">
+        <div id="app-status" class="app-status" role="status" aria-live="polite">Conectando con Firebase...</div>
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow" id="section-eyebrow">ESPACIO DE TRABAJO</p>
+            <h1 id="page-title">Proyectos</h1>
+            <p id="page-description" class="page-description">Organiza tus proyectos y sus apuntes técnicos.</p>
+          </div>
+          <div class="page-heading-actions">
+            <label class="sort-control" id="sort-control">
+              <span class="visually-hidden">Ordenar elementos</span>
+              <select id="sort-select">
+                <option value="updated-desc">Última actualización</option>
+                <option value="created-desc">Más recientes</option>
+                <option value="created-asc">Más antiguos</option>
+                <option value="priority">Prioridad</option>
+              </select>
+            </label>
+            <button type="button" id="add-note-button" class="primary-button"><span aria-hidden="true">+</span> Nueva nota</button>
+            <button type="button" id="add-reminder-button" class="primary-button" hidden><span aria-hidden="true">+</span> Recordatorio</button>
+          </div>
+        </section>
+
+        <section id="projects-overview" class="projects-overview" aria-label="Resumen de proyectos"></section>
+        <section id="notes-view" class="notes-view" aria-label="Notas" hidden></section>
+        <section id="calendar-view" class="calendar-view" aria-label="Calendario" hidden></section>
+      </main>
+    </div>
+
+    <footer class="app-footer">
+      © 2026 CodePad. Todos los derechos reservados. Desarrollado por <a href="https://github.com/gaboo-eng" target="_blank" rel="noopener noreferrer">gaboo-eng</a>
+    </footer>
+  </div>
+
+  <dialog id="project-dialog" class="app-dialog">
+    <form id="project-form" method="dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">ESPACIO DE TRABAJO</p><h2 id="project-dialog-title">Nuevo proyecto</h2></div>
+        <button type="button" class="small-icon-button dialog-close" data-close-dialog aria-label="Cerrar">×</button>
+      </div>
+      <label class="field-label" for="project-name">Nombre del proyecto</label>
+      <input id="project-name" name="name" maxlength="80" required placeholder="Ej. Aplicación web">
+      <label class="field-label" for="project-description">Descripción <span>(opcional)</span></label>
+      <textarea id="project-description" name="description" rows="3" maxlength="300" placeholder="¿En qué estás trabajando?"></textarea>
+      <p class="dialog-error" id="project-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="secondary-button" data-close-dialog>Cancelar</button>
+        <button type="submit" class="primary-button">Guardar proyecto</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="note-dialog" class="app-dialog wide-dialog">
+    <form id="note-form" method="dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">APUNTES TÉCNICOS</p><h2 id="note-dialog-title">Nueva nota</h2></div>
+        <button type="button" class="small-icon-button dialog-close" data-close-dialog aria-label="Cerrar">×</button>
+      </div>
+      <label class="field-label" for="note-title">Título</label>
+      <input id="note-title" name="title" maxlength="120" required placeholder="Título de la nota">
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="note-project">Proyecto</label>
+          <select id="note-project" name="projectId"></select>
+        </div>
+        <div>
+          <label class="field-label" for="note-priority">Clasificación</label>
+          <select id="note-priority" name="priority">
+            <option value="none">Blanco · Sin clasificar</option>
+            <option value="high">Rojo · Alta prioridad</option>
+            <option value="medium">Amarillo · Media prioridad</option>
+            <option value="done">Verde · Completado / referencia</option>
+          </select>
+        </div>
+      </div>
+      <label class="field-label" for="note-content">Apuntes</label>
+      <textarea id="note-content" name="content" rows="5" maxlength="20000" placeholder="Escribe tus apuntes aquí..."></textarea>
+      <details class="code-fields">
+        <summary>Bloques de código (HTML, CSS y JavaScript)</summary>
+        <label class="field-label" for="note-code-html">HTML</label>
+        <textarea id="note-code-html" name="codeHtml" rows="4" maxlength="30000" spellcheck="false" placeholder="<!-- HTML -->"></textarea>
+        <label class="field-label" for="note-code-css">CSS</label>
+        <textarea id="note-code-css" name="codeCss" rows="4" maxlength="30000" spellcheck="false" placeholder="/* CSS */"></textarea>
+        <label class="field-label" for="note-code-js">JavaScript</label>
+        <textarea id="note-code-js" name="codeJs" rows="4" maxlength="30000" spellcheck="false" placeholder="// JavaScript"></textarea>
+      </details>
+      <p class="dialog-error" id="note-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="secondary-button" data-close-dialog>Cancelar</button>
+        <button type="submit" class="primary-button">Guardar nota</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="reminder-dialog" class="app-dialog">
+    <form id="reminder-form" method="dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">CALENDARIO</p><h2 id="reminder-dialog-title">Nuevo recordatorio</h2></div>
+        <button type="button" class="small-icon-button dialog-close" data-close-dialog aria-label="Cerrar">×</button>
+      </div>
+      <label class="field-label" for="reminder-title">Título</label>
+      <input id="reminder-title" name="title" maxlength="120" required placeholder="Ej. Revisar documentación">
+      <div class="form-grid">
+        <div><label class="field-label" for="reminder-date">Fecha</label><input id="reminder-date" name="date" type="date" required></div>
+        <div><label class="field-label" for="reminder-time">Hora</label><input id="reminder-time" name="time" type="time" required></div>
+      </div>
+      <label class="field-label" for="reminder-description">Detalle <span>(opcional)</span></label>
+      <textarea id="reminder-description" name="description" rows="3" maxlength="500" placeholder="Añade un detalle"></textarea>
+      <p class="dialog-error" id="reminder-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="secondary-button" data-close-dialog>Cancelar</button>
+        <button type="submit" class="primary-button">Guardar recordatorio</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="./js/auth.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
