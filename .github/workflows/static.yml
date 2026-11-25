@@ -15,10 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  upload:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar código
@@ -32,6 +29,13 @@ jobs:
         with:
           path: ./public
 
+  deploy:
+    needs: upload
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Implementar en Pages
         id: deployment
         uses: actions/deploy-pages@v4
