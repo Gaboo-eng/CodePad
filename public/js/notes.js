@@ -108,6 +108,23 @@ export function renderNotes(container, notes, projects, { onEdit, onDelete }) {
       content.className = "note-content";
       content.textContent = note.content;
       body.append(content);
+
+      const lineCount = note.content.split(/\r\n|\r|\n/).length;
+      if (note.content.length > 280 || lineCount > 6) {
+        content.classList.add("is-collapsed");
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "note-content-toggle";
+        toggle.textContent = "Mostrar más";
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.addEventListener("click", () => {
+          const expanded = content.classList.toggle("is-expanded");
+          content.classList.toggle("is-collapsed", !expanded);
+          toggle.textContent = expanded ? "Mostrar menos" : "Mostrar más";
+          toggle.setAttribute("aria-expanded", String(expanded));
+        });
+        body.append(toggle);
+      }
     }
 
     addCodeBlock(body, note);

@@ -1,11 +1,15 @@
 import { auth } from "./firebase-config.js";
 import {
+  getIdTokenResult,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 const THEME_STORAGE_KEY = "codepad-theme";
+const MAX_SESSION_AGE_MS = 2 * 60 * 60 * 1000;
+let sessionExpiryTimer = null;
+let sessionExpired = false;
 
 /**
  * Aplica el tema guardado en localStorage (solo preferencia visual, nunca credenciales).
@@ -91,7 +95,8 @@ function isProtectedPage() {
 
 function redirectTo(path) {
   const current = window.location.pathname;
-  if (current.endsWith(path) || (path === "index.html" && (current === "/" || current.endsWith("/index.html")))) {
+  const targetPath = path.split("?")[0];
+  if (current.endsWith(targetPath) || (targetPath === "index.html" && (current === "/" || current.endsWith("/index.html")))) {
     return;
   }
   window.location.replace(path);
@@ -103,6 +108,52 @@ function setLoginMessage(message, type = "") {
   el.textContent = message || "";
   el.classList.remove("error", "success");
   if (type) el.classList.add(type);
+}
+
+function showSessionMessage() {
+  if (new URLSearchParams(window.location.search).get("session") === "expired") {
+    setLoginMessage("Tu sesión alcanzó el límite de dos horas. Inicia sesión nuevamente.", "error");
+  }
+}
+
+function clearSessionExpiryTimer() {
+  if (sessionExpiryTimer !== null) {
+    window.clearTimeout(sessionExpiryTimer);
+    sessionExpiryTimer = null;
+  }
+}
+
+async function expireSession() {
+  if (!auth.currentUser) return;
+  sessionExpired = true;
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("No se pudo cerrar la sesión vencida:", error);
+  }
+  redirectTo("login.html?session=expired");
+}
+
+async function scheduleSessionExpiry(user) {
+  const tokenResult = await getIdTokenResult(user);
+  const authenticatedAt = Number(tokenResult.claims.auth_time) * 1000;
+  if (!Number.isFinite(authenticatedAt) || authenticatedAt <= 0) {
+    throw new Error("Firebase no devolvió una hora de autenticación válida.");
+  }
+
+  const expiresAt = authenticatedAt + MAX_SESSION_AGE_MS;
+  const remainingTime = expiresAt - Date.now();
+  if (remainingTime <= 0) {
+    await expireSession();
+    return false;
+  }
+
+  sessionExpiryTimer = window.setTimeout(() => {
+    if (auth.currentUser?.uid === user.uid) {
+      void expireSession();
+    }
+  }, remainingTime);
+  return true;
 }
 
 function mapAuthError(error) {
@@ -175,10 +226,22 @@ function initLogout() {
 initThemeToggle();
 initLoginForm();
 initLogout();
+showSessionMessage();
 
 // Protección de rutas y redirecciones basadas en el estado real de sesión (Firebase Auth)
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
+  clearSessionExpiryTimer();
   if (user) {
+    try {
+      const sessionIsValid = await scheduleSessionExpiry(user);
+      if (!sessionIsValid || auth.currentUser?.uid !== user.uid) return;
+    } catch (error) {
+      console.error("No se pudo validar la duración de la sesión:", error);
+      document.documentElement.dataset.authState = "redirecting";
+      await expireSession();
+      return;
+    }
+
     document.documentElement.dataset.authState = "authenticated";
     if (isLoginPage()) {
       redirectTo("index.html");
@@ -188,10 +251,12 @@ onAuthStateChanged(auth, (user) => {
 
   if (isProtectedPage() && !isLoginPage()) {
     document.documentElement.dataset.authState = "redirecting";
-    redirectTo("login.html");
+    redirectTo(sessionExpired ? "login.html?session=expired" : "login.html");
+    sessionExpired = false;
     return;
   }
 
+  sessionExpired = false;
   document.documentElement.dataset.authState = "anonymous";
 });
 
